@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link, Routes, Route } from 'react-router-dom';
 import './App.css';
+import RecipeDetail from './RecipeDetail';
+import { API_KEY } from './config';
+import Chart from 'chart.js/auto';
 
 function App() {
   const [data, setData] = useState([]);
@@ -19,7 +23,7 @@ function App() {
     async function fetchDetailedData() {
       try {
         const promises = data.map((item) =>
-          axios.get(`https://api.spoonacular.com/recipes/${item.id}/information?apiKey=2d9149c7c1684b2a9a763c3c22b2e501`)
+          axios.get(`https://api.spoonacular.com/recipes/${item.id}/information?apiKey=${API_KEY}`)
         );
         const responses = await Promise.all(promises);
         const detailedData = responses.map((response) => response.data);
@@ -31,8 +35,9 @@ function App() {
     fetchDetailedData();
   }, [data]);
 
+
   async function fetchData() {
-    let url = 'https://api.spoonacular.com/recipes/complexSearch?number=10&apiKey=2d9149c7c1684b2a9a763c3c22b2e501';
+    let url = 'https://api.spoonacular.com/recipes/complexSearch?number=10&apiKey=' + API_KEY;
     if (vegetarian) {
       url += '&diet=vegetarian';
     }
@@ -96,21 +101,22 @@ function App() {
         </div>
       </div>
       <main>
-        <div className="card-container">
-          {filteredData.map((item, index) => (
-            <div key={item.id} className="card">
+        <Routes>
+          <Route path="/" element={<div className="card-container">{filteredData.map((item, index) => (
+            <Link to={`/recipes/${item.id}`} key={item.id} className="card">
               <h2>{item.title}</h2>
               <p>{item.summary}</p>
               <p>Cooking Time (minutes): {detailedData[index]?.readyInMinutes}</p>
               <p>Servings: {detailedData[index]?.servings}</p>
               <p>Prive Per Serving: ${(detailedData[index]?.pricePerServing/50).toFixed(2)}</p>
               <img src={item.image} alt={item.title} />
-            </div>
-          ))}
-        </div>
+            </Link>
+          ))}</div>} />
+          <Route path="/recipes/:id" Component={RecipeDetail} />
+        </Routes>
       </main>
     </div>
-  );
+  );  
 }
 
 export default App;
